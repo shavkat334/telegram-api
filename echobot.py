@@ -7,13 +7,16 @@ from config import TOKEN
 def get_updates(offset: int | None = None):
     url = f"https://api.telegram.org/bot{TOKEN}/getUpdates"
     params = {"offset": offset}
+    print(f"URL: {url}")
+    print(f"Params: {params}")
     response = requests.get(url, params=params)
 
+    print(f"Status Code: {response.status_code}")
+    print(f"Response: {response.text}")
+    
     if response.status_code == 200:
         return response.json()["result"]
 
-    print(f"Status: {response.status_code}")
-    print(f"Response: {response.text}")
     raise Exception("Bad Request")
 
 
@@ -38,10 +41,12 @@ def send_video(chat_id: int, video: str):
     url = f"https://api.telegram.org/bot{TOKEN}/sendVideo"
     params = {"chat_id": chat_id, "video": video}
     requests.get(url, params=params)
-
-def send_location(chat_id: int, location: dict):
-    url = f"https://api.telegram.org/bot{TOKEN}/sendLocation"
-    params = {"chat_id": chat_id, location: "location"}
+def send_document(chat_id: int, document: str):
+    url = f'https://api.telegram.org/bot{TOKEN}/sendDocument'
+    params = {
+        'chat_id': chat_id,
+        'document': document
+    }
     requests.get(url, params=params)
 def main():
     update_id = None
@@ -70,10 +75,12 @@ def main():
                             chat_id=update["message"]["chat"]["id"],
                             video=update["message"]["video"]["file_id"]
                     )
-                elif update['message'].get('location'):
-                    send_location(
-                        chat_id=update["message"]["chat"]["id"],
-                        location=update["message"]["location"]
+
+                elif update.get('message').get('document'):
+                    send_document(
+                        chat_id=update['message']['chat']['id'],
+                        document=update['message']['document']['file_id']
                     )
+                
                 update_id = update["update_id"] + 1
 main()
